@@ -6,7 +6,10 @@ services:
       context: .
       dockerfile: Dockerfile.dev
     ports:
-      - "3000:3000"
+      - 3000:3000
     volumes:
-      - "${DOCKER_SOCKET}:/var/run/docker.sock"
       - .:/app/backend
+
+    # External socket for testing purposes
+    environment:
+      - DOCKER_HOST=${DOCKER_TEST_SOCKET}
