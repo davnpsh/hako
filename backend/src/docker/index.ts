@@ -1,31 +1,51 @@
+import log, { LogType } from "../utils/log";
 import { exec } from "child_process";
 
-interface Docker {
-  listContainers: () => object;
+interface Container {
+  id: string;
+  name: string;
+  image: string;
+  compose_project: string;
 }
 
+interface Docker {
+  /**
+   * Returns a list of containers.
+   * @returns {object}
+   */
+  containers: () => Container[];
+}
+
+/**
+ * Returns a Docker object with methods to interact with Docker containers.
+ * @returns {Docker} Docker object.
+ */
 export default function (): Docker {
   const obj: Docker = {
-    /*
-     * Returns list of containers.
-     */
-    listContainers: function () {
-      // Get current containers list
-      const cmd = 'docker ps -a --no-trunc --format="{{json .}}"';
+    containers: function (): Container[] {
+      var containers: Container[] = [];
+
+      const cmd: string = `docker container ls --all --no-trunc --format '{"id": "{{.ID}}", "name": "{{.Names}}", "image": "{{.Image}}", "compose_project": "{{.Label "com.docker.compose.project"}}"}'`;
       exec(cmd, (error, stdout, stderr) => {
         if (error) {
-          console.log("An error ocurred:\n", stderr);
+          log(LogType.error, "Couldn't retrieve list of containers:\n", stderr);
           return;
         }
 
-        const lines = stdout.split("\n");
+        try {
+          containers = stdout
+            .trim()
+            .split("\n")
+            .map((container) => JSON.parse(container));
 
-        const containers = lines
-          .filter((line) => line.trim() !== "") // Remove empty objects
-          .map((line) => JSON.parse(line));
-        console.log(containers);
+          log(LogType.info, "Retrieved list of containers.");
+          console.log(containers);
+        } catch (exception: any) {
+          log(LogType.info, "Couldn't retrieve list of containers:", exception);
+        }
       });
-      return {};
+
+      return containers;
     },
   };
 
