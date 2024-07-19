@@ -1,21 +1,46 @@
-import { Container } from "../../interfaces/docker";
-import { exec } from "child_process";
+import http from "http";
+import { Container, Socket } from "../../interfaces/docker";
 
-export default function (): Promise<Container[]> {
+export default function (socket: Socket): Promise<Container[]> {
   return new Promise((resolve, reject) => {
-    const cmd: string = `docker container ls --all --no-trunc --format '{"id": "{{.ID}}", "name": "{{.Names}}", "image": "{{.Image}}", "compose_project": "{{.Label "com.docker.compose.project"}}"}'`;
-    exec(cmd, (error, stdout, stderr) => {
-      if (error) {
-        reject(error);
-        return;
-      }
+    const timeout_seconds = 5;
+    const options = {
+      ...socket.location(),
+      path: "/containers/json?all=true",
+      method: "GET",
+    };
 
-      let containers: Container[] = stdout
-        .trim()
-        .split("\n")
-        .map((container) => JSON.parse(container));
+    const req = http.request(options, (res) => {
+      let data = "";
 
-      resolve(containers);
+      res.on("data", (chunk) => {
+        data += chunk;
+      });
+
+      res.on("end", () => {
+        const response = JSON.parse(data);
+
+        // We just need essential data
+        const containers: Container[] = response.map((container: any) => ({
+          id: container.Id,
+          name: container.Names[0].replace(/^\//, ""),
+          image: container.Image,
+          compose_project: container.Labels["com.docker.compose.project"],
+        }));
+
+        resolve(containers);
+      });
     });
+
+    req.on("error", (err) => {
+      reject(err);
+    });
+
+    // Docker direct commands/API can be really slow to report a timeout.
+    req.setTimeout(timeout_seconds * 1000, () => {
+      reject();
+    });
+
+    req.end();
   });
 }

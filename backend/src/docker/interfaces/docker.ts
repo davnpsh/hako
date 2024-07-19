@@ -14,7 +14,7 @@ export interface Container {
   /**
    * Container compose project group.
    */
-  compose_project: string;
+  compose_project?: string;
 }
 
 export interface Socket {
