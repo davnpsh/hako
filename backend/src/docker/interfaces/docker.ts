@@ -36,6 +36,12 @@ export interface Containers {
    * @returns {Promise<Container[]>}
    */
   list: () => Promise<Container[]>;
+  /**
+   * Returns information about a single container.
+   * @param {string} container_id - Container's complete ID.
+   * @returns {Promise<Container>}
+   */
+  info: (container_id: string) => Promise<Container>;
 }
 
 export interface Docker {
