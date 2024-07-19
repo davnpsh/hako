@@ -1,10 +1,13 @@
+// Logging
 import log from "./utils/log";
 import { LogType } from "./enums/log";
 import { InfoMessage } from "./enums/info";
 import { ErrorMessage } from "./enums/error";
+//
 import express, { Request, Response } from "express";
+// Docker
 import Docker from "./docker";
-import { Container } from "./docker/interfaces/container";
+import { Container } from "./docker/interfaces/docker";
 
 const app = express();
 const port = 3000;
@@ -35,9 +38,9 @@ app.get("/docker/socket", async (req: Request, res: Response) => {
   res.status(200).json(info);
 });
 
-app.get("/docker/containers", async (req: Request, res: Response) => {
+app.get("/docker/containers/list", async (req: Request, res: Response) => {
   try {
-    const containers: Container[] = await docker.containers();
+    const containers: Container[] = await docker.containers.list();
 
     log(LogType.info, InfoMessage.DOCKER_CONTAINERS_LOOKUP);
     res.status(200).json(containers);
