@@ -31,6 +31,7 @@ export default function (): Docker {
       },
       isRunning: function (): Promise<boolean> {
         return new Promise((resolve) => {
+          const timeout_seconds = 5;
           const options = { ...this.location(), path: "/_ping", method: "GET" };
 
           const req = http.request(options, (res) => {
@@ -40,6 +41,11 @@ export default function (): Docker {
 
           req.on("error", (err) => {
             // Docker socket not running or not found
+            resolve(false);
+          });
+
+          // Docker direct commands/API can be really slow to report a timeout.
+          req.setTimeout(timeout_seconds * 1000, () => {
             resolve(false);
           });
 
