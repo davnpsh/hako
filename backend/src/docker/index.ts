@@ -1,4 +1,5 @@
-import log, { LogType } from "../utils/log";
+import log from "../utils/log";
+import { LogType } from "../enums/log";
 import { ErrorType } from "../enums/error";
 import { Container } from "./interfaces/container";
 import { Docker } from "./interfaces/docker";
@@ -10,16 +11,28 @@ import http from "http";
  * Returns a Docker object with methods to interact with Docker containers.
  * @returns {Docker} Docker object.
  */
-export default function (socketPath: string): Docker {
+export default function (): Docker {
   const obj: Docker = {
-    socketPath: socketPath,
     isRunning: function (): Promise<boolean> {
       return new Promise((resolve) => {
-        const options = {
-          socketPath: socketPath,
-          path: "/_ping",
-          method: "GET",
-        };
+        const docker_host: URL | null = process.env.DOCKER_HOST
+          ? new URL(process.env.DOCKER_HOST)
+          : null;
+
+        const options = docker_host
+          ? // If the socket is an external one, ping using the provided address:
+            {
+              hostname: docker_host.hostname,
+              port: docker_host.port,
+              path: "/_ping",
+              method: "GET",
+            }
+          : // If not, ping the local Docker socket:
+            {
+              socketPath: "/var/run/docker.socket",
+              path: "/_ping",
+              method: "GET",
+            };
 
         const req = http.request(options, (res) => {
           if (res.statusCode === 200) {

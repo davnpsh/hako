@@ -3,10 +3,6 @@ import { ErrorType } from "../../enums/error";
 
 export interface Docker {
   /**
-   * Socket path.
-   */
-  socketPath: string;
-  /**
    * Returns a list of containers.
    * @returns {object}
    */
