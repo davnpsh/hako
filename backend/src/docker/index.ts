@@ -1,6 +1,3 @@
-import log from "../utils/log";
-import { LogType } from "../enums/log";
-import { ErrorMessage } from "../enums/error";
 import { Container } from "./interfaces/container";
 import { Docker } from "./interfaces/docker";
 
@@ -13,46 +10,42 @@ import http from "http";
  */
 export default function (): Docker {
   const obj: Docker = {
-    isRunning: function (): Promise<boolean> {
-      return new Promise((resolve) => {
+    socket: {
+      location: function (): object {
         const docker_host: URL | null = process.env.DOCKER_HOST
           ? new URL(process.env.DOCKER_HOST)
           : null;
 
-        const options = docker_host
-          ? // If the socket is an external one, ping using the provided address:
+        const location = docker_host
+          ? // If the socket is an external one, use the provided address:
             {
               hostname: docker_host.hostname,
               port: docker_host.port,
-              path: "/_ping",
-              method: "GET",
             }
-          : // If not, ping the local Docker socket:
+          : // If not, use the mounted Docker socket:
             {
-              socketPath: "/var/run/docker.socket",
-              path: "/_ping",
-              method: "GET",
+              socketPath: "/var/run/docker.sock",
             };
 
-        const req = http.request(options, (res) => {
-          if (res.statusCode === 200) {
-            resolve(true);
-          } else {
+        return location;
+      },
+      isRunning: function (): Promise<boolean> {
+        return new Promise((resolve) => {
+          const options = { ...this.location(), path: "/_ping", method: "GET" };
+
+          const req = http.request(options, (res) => {
+            // Docker socket was found and running
+            resolve(res.statusCode === 200);
+          });
+
+          req.on("error", (err) => {
+            // Docker socket not running or not found
             resolve(false);
-          }
-        });
+          });
 
-        req.on("error", (error) => {
-          log(
-            LogType.error,
-            ErrorMessage.DOCKER_SOCKET_NOT_RUNNING,
-            error.toString(),
-          );
-          resolve(false);
+          req.end();
         });
-
-        req.end();
-      });
+      },
     },
     containers: function (): Promise<Container[]> {
       return new Promise((resolve, reject) => {

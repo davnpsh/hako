@@ -1,4 +1,4 @@
 export enum ErrorMessage {
-  DOCKER_SOCKET_NOT_RUNNING = "Cannot reach docker socket.",
-  CONTAINERS_LOOKUP_FAILED = "Couldn't retrieve list of containers.",
+  DOCKER_SOCKET_NOT_RUNNING = "Docker socket is NOT running or is unreachable.",
+  DOCKER_CONTAINERS_LOOKUP_FAILED = "An error ocurred while trying to fetch the list of containers.",
 }
