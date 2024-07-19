@@ -18,4 +18,4 @@ echo \
 apt-get update
 
 # Install required packages:
-apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
