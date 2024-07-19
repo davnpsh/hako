@@ -1,7 +1,4 @@
-export enum LogType {
-  error = "ERROR",
-  info = "INFO",
-}
+import { LogType } from "../enums/log";
 
 /**
  * Logs a message through the server console.
