@@ -1,10 +1,9 @@
 import log from "./utils/log";
 import { LogType } from "./enums/log";
+import { ErrorMessage } from "./enums/error";
 import express, { Request, Response } from "express";
-import { ErrorType } from "./enums/error";
-import { sendError } from "./utils/error";
-import { Container } from "./docker/interfaces/container";
 import Docker from "./docker";
+import { Container } from "./docker/interfaces/container";
 
 const app = express();
 const port = 3000;
@@ -12,21 +11,18 @@ const port = 3000;
 // APIs
 const docker = Docker();
 
-// check if Docker socket
-docker.isRunning().then((isRunning) => {
-  if (isRunning === false) {
-    log(LogType.error, ErrorType.DOCKER_SOCKET_NOT_RUNNING);
-  }
-});
-
 app.get("/docker/containers", async (req: Request, res: Response) => {
-  let containers: Container[] | ErrorType = await docker.containers();
-
-  if (Array.isArray(containers) === false) {
-    sendError(res, 500, containers as ErrorType);
-    return;
+  try {
+    let containers: Container[] = await docker.containers();
+    res.status(200).json(containers);
+  } catch (error) {
+    log(
+      LogType.error,
+      ErrorMessage.CONTAINERS_LOOKUP_FAILED,
+      (error as Error).message,
+    );
+    res.status(500).json({ error: ErrorMessage.CONTAINERS_LOOKUP_FAILED });
   }
-  res.json(containers);
 });
 
 app.listen(port, () => {

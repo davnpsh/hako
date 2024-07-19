@@ -12,7 +12,7 @@ export default function (
   ...opt_msgs: string[]
 ) {
   if (opt_msgs.length > 0) {
-    message += " " + opt_msgs.join(" ");
+    message += "\n" + opt_msgs.join("\n");
   }
 
   switch (type) {

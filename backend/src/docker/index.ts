@@ -1,6 +1,6 @@
 import log from "../utils/log";
 import { LogType } from "../enums/log";
-import { ErrorType } from "../enums/error";
+import { ErrorMessage } from "../enums/error";
 import { Container } from "./interfaces/container";
 import { Docker } from "./interfaces/docker";
 
@@ -43,36 +43,32 @@ export default function (): Docker {
         });
 
         req.on("error", (error) => {
-          console.error(ErrorType.DOCKER_SOCKET_NOT_RUNNING, error);
+          log(
+            LogType.error,
+            ErrorMessage.DOCKER_SOCKET_NOT_RUNNING,
+            error.toString(),
+          );
           resolve(false);
         });
 
         req.end();
       });
     },
-    containers: function (): Promise<Container[] | ErrorType> {
-      return new Promise((resolve) => {
+    containers: function (): Promise<Container[]> {
+      return new Promise((resolve, reject) => {
         const cmd: string = `docker container ls --all --no-trunc --format '{"id": "{{.ID}}", "name": "{{.Names}}", "image": "{{.Image}}", "compose_project": "{{.Label "com.docker.compose.project"}}"}'`;
         exec(cmd, (error, stdout, stderr) => {
           if (error) {
-            log(LogType.error, ErrorType.CONTAINERS_LOOKUP_FAILED, stderr);
-            resolve(ErrorType.CONTAINERS_LOOKUP_FAILED);
+            reject(error);
             return;
           }
 
-          try {
-            let containers: Container[] = stdout
-              .trim()
-              .split("\n")
-              .map((container) => JSON.parse(container));
+          let containers: Container[] = stdout
+            .trim()
+            .split("\n")
+            .map((container) => JSON.parse(container));
 
-            log(LogType.info, "Retrieved list of containers.");
-            console.log(containers);
-            resolve(containers);
-          } catch (exception: any) {
-            log(LogType.error, ErrorType.CONTAINERS_LOOKUP_FAILED, exception);
-            resolve(ErrorType.CONTAINERS_LOOKUP_FAILED);
-          }
+          resolve(containers);
         });
       });
     },
