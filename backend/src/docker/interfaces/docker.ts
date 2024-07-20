@@ -42,6 +42,12 @@ export interface Containers {
    * @returns {Promise<Container>}
    */
   info: (container_id: string) => Promise<Container>;
+  /**
+   * Returns status code of Docker start container API call.
+   * @param {string} container_id - Container's complete ID.
+   * @returns {Promise<number>}
+   */
+  start: (container_id: string) => Promise<number>;
 }
 
 export interface Docker {
