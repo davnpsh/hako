@@ -8,6 +8,7 @@ import express, { Request, Response } from "express";
 // Docker
 import Docker from "./docker";
 import { Container } from "./docker/interfaces/docker";
+import { Actions } from "./definitions/actions";
 
 const app = express();
 const port = 3000;
@@ -88,47 +89,66 @@ app.get("/docker/containers/info/:id", async (req: Request, res: Response) => {
   }
 });
 
-app.post("/docker/containers/start", async (req: Request, res: Response) => {
-  try {
-    const { container_id } = req.body;
+// Docker containers controls
+const docker_container_control =
+  (action: string) => async (req: Request, res: Response) => {
+    try {
+      const { container_id } = req.body;
 
-    if (!container_id) {
-      logger.error(ErrorMessage.DOCKER.CONTAINERS.MISSING_ID);
-      res
-        .status(400)
-        .json({ error: ErrorMessage.DOCKER.CONTAINERS.MISSING_ID });
-      return;
+      if (!container_id) {
+        logger.error(ErrorMessage.DOCKER.CONTAINERS.MISSING_ID);
+        res
+          .status(400)
+          .json({ error: ErrorMessage.DOCKER.CONTAINERS.MISSING_ID });
+        return;
+      }
+
+      let response: number = await docker.containers.control(
+        container_id,
+        action,
+      );
+
+      // Response codes based on:
+      // https://docs.docker.com/engine/api/v1.46/#tag/Container/operation/ContainerStart
+      switch (response) {
+        case 204:
+        case 304:
+          logger.info(InfoMessage.DOCKER.CONTAINERS.CONTAINER_ACTION + action);
+          res.status(response).send();
+          break;
+        default:
+          logger.error(
+            ErrorMessage.DOCKER.CONTAINERS.CONTAINER_ACTION_FAILED + action,
+          );
+          res.status(500).json({
+            error: ErrorMessage.DOCKER.CONTAINERS.CONTAINER_ACTION_FAILED,
+          });
+          break;
+      }
+    } catch (error) {
+      logger.error(
+        ErrorMessage.DOCKER.CONTAINERS.CONTAINER_ACTION_FAILED + action,
+      );
+      res.status(500).json({
+        error: ErrorMessage.DOCKER.CONTAINERS.CONTAINER_ACTION_FAILED,
+      });
     }
+  };
 
-    const response = await docker.containers.start(container_id);
+app.post(
+  "/docker/containers/start",
+  docker_container_control(Actions.DOCKER.CONTAINERS.START),
+);
 
-    // Response codes based on:
-    // https://docs.docker.com/engine/api/v1.46/#tag/Container/operation/ContainerStart
-    switch (response) {
-      case 204:
-        logger.info(InfoMessage.DOCKER.CONTAINERS.CONTAINER_STARTED);
-        res.status(204).send();
-        break;
-      case 304:
-        logger.warn(InfoMessage.DOCKER.CONTAINERS.CONTAINER_ALREADY_STARTED);
-        res.status(304).send();
-        break;
-      case 404:
-      case 500:
-      default:
-        logger.error(ErrorMessage.DOCKER.CONTAINERS.CONTAINER_START_FAILED);
-        res.status(500).json({
-          error: ErrorMessage.DOCKER.CONTAINERS.CONTAINER_START_FAILED,
-        });
-        break;
-    }
-  } catch (error) {
-    logger.error(ErrorMessage.DOCKER.CONTAINERS.CONTAINER_START_FAILED, error);
-    res
-      .status(500)
-      .json({ error: ErrorMessage.DOCKER.CONTAINERS.CONTAINER_START_FAILED });
-  }
-});
+app.post(
+  "/docker/containers/stop",
+  docker_container_control(Actions.DOCKER.CONTAINERS.STOP),
+);
+
+app.post(
+  "/docker/containers/restart",
+  docker_container_control(Actions.DOCKER.CONTAINERS.RESTART),
+);
 
 app.listen(port, () => {
   logger.info(`Backend API is running on http://0.0.0.0:${port}`);
