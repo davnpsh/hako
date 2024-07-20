@@ -7,8 +7,7 @@ export const InfoMessage = {
     CONTAINERS: {
       LIST_LOOKUP: "Fetched Docker containers list.",
       CONTAINER_LOOKUP: "Fetched Docker container information.",
-      CONTAINER_STARTED: "Docker container started.",
-      CONTAINER_ALREADY_STARTED: "Docker container already started",
+      CONTAINER_ACTION: "Docker container action executed: ",
     },
   },
 };

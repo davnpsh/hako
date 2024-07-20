@@ -1,15 +1,17 @@
 import http from "http";
 import { Container, Socket } from "../../interfaces/docker";
+import { Actions } from "../../../definitions/actions";
 
 export default function (
   socket: Socket,
   container_id: string,
+  action: string,
 ): Promise<number> {
   return new Promise((resolve, reject) => {
     const timeout_seconds = 5;
     const options = {
       ...socket.location(),
-      path: `/containers/${container_id}/start`,
+      path: `/containers/${container_id}/${action}`,
       method: "POST",
     };
 

@@ -9,8 +9,8 @@ export const ErrorMessage = {
         "An error ocurred while trying to fetch the list of containers.",
       CONTAINER_LOOKUP_FAILED:
         "An error ocurred while trying to fetch the container information.",
-      CONTAINER_START_FAILED:
-        "An error ocurred while trying to start the container.",
+      CONTAINER_INVALID_ACTION: "Docker container invalid action.",
+      CONTAINER_ACTION_FAILED: "Docker container action failed: ",
     },
   },
 };
