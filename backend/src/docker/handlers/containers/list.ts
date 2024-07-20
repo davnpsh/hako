@@ -18,27 +18,32 @@ export default function (socket: Socket): Promise<Container[]> {
       });
 
       res.on("end", () => {
-        const response = JSON.parse(data);
+        try {
+          const response = JSON.parse(data);
 
-        // We just need essential data
-        const containers: Container[] = response.map((container: any) => ({
-          id: container.Id,
-          name: container.Names[0].replace(/^\//, ""),
-          image: container.Image,
-          compose_project: container.Labels["com.docker.compose.project"],
-        }));
+          // We just need essential data
+          const containers: Container[] = response.map((container: any) => ({
+            id: container.Id,
+            name: container.Names[0].replace(/^\//, ""),
+            image: container.Image,
+            compose_project: container.Labels["com.docker.compose.project"],
+          }));
 
-        resolve(containers);
+          resolve(containers);
+        } catch (error) {
+          reject(error);
+        }
       });
     });
 
-    req.on("error", (err) => {
-      reject(err);
+    req.on("error", (error) => {
+      reject(error);
     });
 
     // Docker direct commands/API can be really slow to report a timeout.
     req.setTimeout(timeout_seconds * 1000, () => {
-      reject();
+      let error = new Error("Timeout");
+      reject(error);
     });
 
     req.end();

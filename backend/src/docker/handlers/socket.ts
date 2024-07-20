@@ -30,7 +30,7 @@ const socket: Socket = {
         resolve(res.statusCode === 200);
       });
 
-      req.on("error", (err) => {
+      req.on("error", (error) => {
         // Docker socket not running or not found
         resolve(false);
       });

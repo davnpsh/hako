@@ -69,8 +69,8 @@ app.get("/docker/containers/:id", async (req: Request, res: Response) => {
   const container_id: string = req.params.id as string;
 
   if (!container_id) {
-    logger.error(ErrorMessage.MISSING_CONTAINER_ID);
-    res.status(400).json({ error: ErrorMessage.MISSING_CONTAINER_ID });
+    logger.error(ErrorMessage.DOCKER_MISSING_CONTAINER_ID);
+    res.status(400).json({ error: ErrorMessage.DOCKER_MISSING_CONTAINER_ID });
     return;
   }
 

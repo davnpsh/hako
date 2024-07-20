@@ -45,7 +45,8 @@ export default function (
 
     // Docker direct commands/API can be really slow to report a timeout.
     req.setTimeout(timeout_seconds * 1000, () => {
-      reject();
+      let error = new Error("Timeout");
+      reject(error);
     });
 
     req.end();
