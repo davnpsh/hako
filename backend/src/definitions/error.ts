@@ -4,7 +4,7 @@ export const ErrorMessage = {
       NOT_RUNNING: "Docker socket is NOT running or is unreachable.",
     },
     CONTAINERS: {
-      MISSING_ID: "Missing container ID.",
+      MISSING_PARAMETERS: "Missing container parameters.",
       LIST_LOOKUP_FAILED:
         "An error ocurred while trying to fetch the list of containers.",
       CONTAINER_LOOKUP_FAILED:
@@ -13,7 +13,7 @@ export const ErrorMessage = {
       CONTAINER_ACTION_FAILED: "Docker container action failed: ",
     },
     NETWORKS: {
-      MISSING_ID: "Missing network ID.",
+      MISSING_PARAMETERS: "Missing network parameters.",
       LIST_LOOKUP_FAILED:
         "An error ocurred while trying to fetch the list of networks.",
       NETWORK_LOOKUP_FAILED:
