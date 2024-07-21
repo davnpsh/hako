@@ -67,9 +67,7 @@ app.get("/docker/containers/list", async (req: Request, res: Response) => {
     res.status(200).json(containers);
   } catch (error) {
     logger.error(ErrorMessage.DOCKER.CONTAINERS.LIST_LOOKUP_FAILED, error);
-    res
-      .status(500)
-      .json({ error: ErrorMessage.DOCKER.CONTAINERS.LIST_LOOKUP_FAILED });
+    res.status(500);
   }
 });
 
@@ -78,7 +76,7 @@ app.get("/docker/containers/info/:id", async (req: Request, res: Response) => {
 
   if (!container_id) {
     logger.error(ErrorMessage.DOCKER.CONTAINERS.MISSING_ID);
-    res.status(400).json({ error: ErrorMessage.DOCKER.CONTAINERS.MISSING_ID });
+    res.status(400);
     return;
   }
 
@@ -89,9 +87,7 @@ app.get("/docker/containers/info/:id", async (req: Request, res: Response) => {
     res.status(200).json(container);
   } catch (error) {
     logger.error(ErrorMessage.DOCKER.CONTAINERS.CONTAINER_LOOKUP_FAILED, error);
-    res
-      .status(500)
-      .json({ error: ErrorMessage.DOCKER.CONTAINERS.CONTAINER_LOOKUP_FAILED });
+    res.status(500);
   }
 });
 
@@ -103,9 +99,7 @@ const docker_container_control =
 
       if (!container_id) {
         logger.error(ErrorMessage.DOCKER.CONTAINERS.MISSING_ID);
-        res
-          .status(400)
-          .json({ error: ErrorMessage.DOCKER.CONTAINERS.MISSING_ID });
+        res.status(400);
         return;
       }
 
@@ -116,9 +110,7 @@ const docker_container_control =
       logger.error(
         ErrorMessage.DOCKER.CONTAINERS.CONTAINER_ACTION_FAILED + action,
       );
-      res.status(500).json({
-        error: ErrorMessage.DOCKER.CONTAINERS.CONTAINER_ACTION_FAILED,
-      });
+      res.status(500);
     }
   };
 
@@ -148,9 +140,7 @@ app.get("/docker/networks/list", async (req: Request, res: Response) => {
     res.status(200).json(networks);
   } catch (error) {
     logger.error(ErrorMessage.DOCKER.NETWORKS.LIST_LOOKUP_FAILED, error);
-    res
-      .status(500)
-      .json({ error: ErrorMessage.DOCKER.NETWORKS.LIST_LOOKUP_FAILED });
+    res.status(500);
   }
 });
 
@@ -159,7 +149,7 @@ app.get("/docker/networks/info/:id", async (req: Request, res: Response) => {
 
   if (!network_id) {
     logger.error(ErrorMessage.DOCKER.NETWORKS.MISSING_ID);
-    res.status(400).json({ error: ErrorMessage.DOCKER.NETWORKS.MISSING_ID });
+    res.status(400);
     return;
   }
 
@@ -170,9 +160,7 @@ app.get("/docker/networks/info/:id", async (req: Request, res: Response) => {
     res.status(200).json(network);
   } catch (error) {
     logger.error(ErrorMessage.DOCKER.NETWORKS.NETWORK_LOOKUP_FAILED, error);
-    res
-      .status(500)
-      .json({ error: ErrorMessage.DOCKER.NETWORKS.NETWORK_LOOKUP_FAILED });
+    res.status(500);
   }
 });
 
