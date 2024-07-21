@@ -4,14 +4,14 @@ import { Actions } from "../../../definitions/actions";
 
 export default function (
   socket: Socket,
-  container_id: string,
+  id: string,
   action: string,
 ): Promise<number> {
   return new Promise((resolve, reject) => {
     const timeout_seconds = 5;
     const options = {
       ...socket.location(),
-      path: `/containers/${container_id}/${action}`,
+      path: `/containers/${id}/${action}`,
       method: "POST",
     };
 

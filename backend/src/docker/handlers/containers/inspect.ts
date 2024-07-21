@@ -1,15 +1,12 @@
 import http from "http";
 import { Container, Socket } from "../../interfaces/docker";
 
-export default function (
-  socket: Socket,
-  container_id: string,
-): Promise<Container> {
+export default function (socket: Socket, id: string): Promise<Container> {
   return new Promise((resolve, reject) => {
     const timeout_seconds = 5;
     const options = {
       ...socket.location(),
-      path: `/containers/${container_id}/json`,
+      path: `/containers/${id}/json`,
       method: "GET",
     };
 
