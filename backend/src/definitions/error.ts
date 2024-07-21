@@ -12,5 +12,18 @@ export const ErrorMessage = {
       CONTAINER_INVALID_ACTION: "Docker container invalid action.",
       CONTAINER_ACTION_FAILED: "Docker container action failed: ",
     },
+    NETWORKS: {
+      MISSING_ID: "Missing network ID.",
+      LIST_LOOKUP_FAILED:
+        "An error ocurred while trying to fetch the list of networks.",
+      NETWORK_LOOKUP_FAILED:
+        "An error ocurred while trying to fetch the network information.",
+      NETWORK_CREATION_FAILED:
+        "An error ocurred while trying to create the network.",
+      NETWORK_REMOVAL_FAILED:
+        "An error ocurred while trying to remove the network.",
+      NETWORK_PRUNING_FAILED:
+        "An error ocurred while trying to remove unused networks.",
+    },
   },
 };

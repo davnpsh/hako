@@ -1,4 +1,5 @@
-// Logging
+// Logging and definitions
+import { Actions } from "./definitions/actions";
 import { InfoMessage } from "./definitions/info";
 import { ErrorMessage } from "./definitions/error";
 import logger from "./utils/logger";
@@ -7,8 +8,7 @@ import morgan from "morgan";
 import express, { Request, Response } from "express";
 // Docker
 import Docker from "./docker";
-import { Container } from "./docker/interfaces/docker";
-import { Actions } from "./definitions/actions";
+import { Container, Network } from "./docker/interfaces/docker";
 
 const app = express();
 const port = 3000;
@@ -43,6 +43,9 @@ docker.socket.isRunning().then((running) => {
   logger.error(ErrorMessage.DOCKER.SOCKET.NOT_RUNNING);
 });
 
+/**
+ * === DOCKER ===
+ */
 app.get("/docker/socket", async (req: Request, res: Response) => {
   const info = {
     location: docker.socket.location(),
@@ -53,6 +56,9 @@ app.get("/docker/socket", async (req: Request, res: Response) => {
   res.status(200).json(info);
 });
 
+/**
+ * = DOCKER CONTAINERS
+ */
 app.get("/docker/containers/list", async (req: Request, res: Response) => {
   try {
     const containers: Container[] = await docker.containers.list();
@@ -77,7 +83,7 @@ app.get("/docker/containers/info/:id", async (req: Request, res: Response) => {
   }
 
   try {
-    const container: Container = await docker.containers.info(container_id);
+    const container: Container = await docker.containers.inspect(container_id);
 
     logger.info(InfoMessage.DOCKER.CONTAINERS.CONTAINER_LOOKUP);
     res.status(200).json(container);
@@ -103,28 +109,9 @@ const docker_container_control =
         return;
       }
 
-      let response: number = await docker.containers.control(
-        container_id,
-        action,
-      );
-
-      // Response codes based on:
-      // https://docs.docker.com/engine/api/v1.46/#tag/Container/operation/ContainerStart
-      switch (response) {
-        case 204:
-        case 304:
-          logger.info(InfoMessage.DOCKER.CONTAINERS.CONTAINER_ACTION + action);
-          res.status(response).send();
-          break;
-        default:
-          logger.error(
-            ErrorMessage.DOCKER.CONTAINERS.CONTAINER_ACTION_FAILED + action,
-          );
-          res.status(500).json({
-            error: ErrorMessage.DOCKER.CONTAINERS.CONTAINER_ACTION_FAILED,
-          });
-          break;
-      }
+      await docker.containers.control(container_id, action);
+      logger.info(InfoMessage.DOCKER.CONTAINERS.CONTAINER_ACTION + action);
+      res.status(200).send();
     } catch (error) {
       logger.error(
         ErrorMessage.DOCKER.CONTAINERS.CONTAINER_ACTION_FAILED + action,
@@ -149,6 +136,45 @@ app.post(
   "/docker/containers/restart",
   docker_container_control(Actions.DOCKER.CONTAINERS.RESTART),
 );
+
+/**
+ * = DOCKER NETWORKS
+ */
+app.get("/docker/networks/list", async (req: Request, res: Response) => {
+  try {
+    const networks: Network[] = await docker.networks.list();
+
+    logger.info(InfoMessage.DOCKER.NETWORKS.LIST_LOOKUP);
+    res.status(200).json(networks);
+  } catch (error) {
+    logger.error(ErrorMessage.DOCKER.NETWORKS.LIST_LOOKUP_FAILED, error);
+    res
+      .status(500)
+      .json({ error: ErrorMessage.DOCKER.NETWORKS.LIST_LOOKUP_FAILED });
+  }
+});
+
+app.get("/docker/networks/info/:id", async (req: Request, res: Response) => {
+  const network_id: string = req.params.id as string;
+
+  if (!network_id) {
+    logger.error(ErrorMessage.DOCKER.NETWORKS.MISSING_ID);
+    res.status(400).json({ error: ErrorMessage.DOCKER.NETWORKS.MISSING_ID });
+    return;
+  }
+
+  try {
+    const network: Network = await docker.networks.inspect(network_id);
+
+    logger.info(InfoMessage.DOCKER.NETWORKS.NETWORK_LOOKUP);
+    res.status(200).json(network);
+  } catch (error) {
+    logger.error(ErrorMessage.DOCKER.NETWORKS.NETWORK_LOOKUP_FAILED, error);
+    res
+      .status(500)
+      .json({ error: ErrorMessage.DOCKER.NETWORKS.NETWORK_LOOKUP_FAILED });
+  }
+});
 
 app.listen(port, () => {
   logger.info(`Backend API is running on http://0.0.0.0:${port}`);
