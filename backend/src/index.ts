@@ -71,7 +71,7 @@ app.get("/docker/containers/list", async (req: Request, res: Response) => {
   }
 });
 
-app.get("/docker/containers/info/:id", async (req: Request, res: Response) => {
+app.get("/docker/containers/:id", async (req: Request, res: Response) => {
   const id: string = req.params.id as string;
 
   if (!id) {
@@ -144,7 +144,7 @@ app.get("/docker/networks/list", async (req: Request, res: Response) => {
   }
 });
 
-app.get("/docker/networks/info/:id", async (req: Request, res: Response) => {
+app.get("/docker/networks/:id", async (req: Request, res: Response) => {
   const id: string = req.params.id as string;
 
   if (!id) {
