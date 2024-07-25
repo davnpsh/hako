@@ -83,10 +83,13 @@ app.get("/docker/containers/:id", async (req: Request, res: Response) => {
   try {
     const container: Container = await docker.containers.inspect(id);
 
-    logger.info(InfoMessage.DOCKER.CONTAINERS.CONTAINER_LOOKUP);
+    logger.info(InfoMessage.DOCKER.CONTAINERS.CONTAINER_LOOKUP(id));
     res.status(200).json(container);
   } catch (error) {
-    logger.error(ErrorMessage.DOCKER.CONTAINERS.CONTAINER_LOOKUP_FAILED, error);
+    logger.error(
+      ErrorMessage.DOCKER.CONTAINERS.CONTAINER_LOOKUP_FAILED(id),
+      error,
+    );
     res.status(500).send();
   }
 });
@@ -94,21 +97,22 @@ app.get("/docker/containers/:id", async (req: Request, res: Response) => {
 // Docker containers controls
 const docker_container_control =
   (action: string) => async (req: Request, res: Response) => {
+    const { id } = req.body;
+
+    if (!id) {
+      logger.error(ErrorMessage.DOCKER.CONTAINERS.MISSING_PARAMETERS);
+      res.status(400).send();
+      return;
+    }
+
     try {
-      const { id } = req.body;
-
-      if (!id) {
-        logger.error(ErrorMessage.DOCKER.CONTAINERS.MISSING_PARAMETERS);
-        res.status(400).send();
-        return;
-      }
-
       await docker.containers.control(id, action);
-      logger.info(InfoMessage.DOCKER.CONTAINERS.CONTAINER_ACTION + action);
+
+      logger.info(InfoMessage.DOCKER.CONTAINERS.CONTAINER_ACTION(id, action));
       res.status(204).send();
     } catch (error) {
       logger.error(
-        ErrorMessage.DOCKER.CONTAINERS.CONTAINER_ACTION_FAILED + action,
+        ErrorMessage.DOCKER.CONTAINERS.CONTAINER_ACTION_FAILED(id, action),
       );
       res.status(500).send();
     }
@@ -156,26 +160,27 @@ app.get("/docker/networks/:id", async (req: Request, res: Response) => {
   try {
     const network: Network = await docker.networks.inspect(id);
 
-    logger.info(InfoMessage.DOCKER.NETWORKS.NETWORK_LOOKUP);
+    logger.info(InfoMessage.DOCKER.NETWORKS.NETWORK_LOOKUP(id));
     res.status(200).json(network);
   } catch (error) {
-    logger.error(ErrorMessage.DOCKER.NETWORKS.NETWORK_LOOKUP_FAILED, error);
+    logger.error(ErrorMessage.DOCKER.NETWORKS.NETWORK_LOOKUP_FAILED(id), error);
     res.status(500).send();
   }
 });
 
 app.post("/docker/networks/create", async (req: Request, res: Response) => {
+  const { name, driver } = req.body;
+
+  if (!name || !driver) {
+    logger.error(ErrorMessage.DOCKER.NETWORKS.MISSING_PARAMETERS);
+    res.status(400).send();
+    return;
+  }
+
   try {
-    const { name, driver } = req.body;
-
-    if (!name && !driver) {
-      logger.error(ErrorMessage.DOCKER.NETWORKS.MISSING_PARAMETERS);
-      res.status(400).send();
-      return;
-    }
-
     const id = await docker.networks.create(name, driver);
-    logger.info(InfoMessage.DOCKER.NETWORKS.NETWORK_CREATION);
+
+    logger.info(InfoMessage.DOCKER.NETWORKS.NETWORK_CREATION(id));
     res.status(201).json({ id: id });
   } catch (error) {
     logger.error(ErrorMessage.DOCKER.NETWORKS.NETWORK_CREATION_FAILED);
@@ -184,20 +189,21 @@ app.post("/docker/networks/create", async (req: Request, res: Response) => {
 });
 
 app.delete("/docker/networks/:id", async (req: Request, res: Response) => {
+  const id: string = req.params.id as string;
+
+  if (!id) {
+    logger.error(ErrorMessage.DOCKER.NETWORKS.MISSING_PARAMETERS);
+    res.status(400).send();
+    return;
+  }
+
   try {
-    const id: string = req.params.id as string;
-
-    if (!id) {
-      logger.error(ErrorMessage.DOCKER.NETWORKS.MISSING_PARAMETERS);
-      res.status(400).send();
-      return;
-    }
-
     await docker.networks.remove(id);
-    logger.info(InfoMessage.DOCKER.NETWORKS.NETWORK_REMOVAL);
-    res.status(200).send();
+
+    logger.info(InfoMessage.DOCKER.NETWORKS.NETWORK_REMOVAL(id));
+    res.status(204).send();
   } catch (error) {
-    logger.error(ErrorMessage.DOCKER.NETWORKS.NETWORK_REMOVAL_FAILED);
+    logger.error(ErrorMessage.DOCKER.NETWORKS.NETWORK_REMOVAL_FAILED(id));
     res.status(500).send();
   }
 });

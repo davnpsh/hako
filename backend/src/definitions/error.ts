@@ -5,25 +5,21 @@ export const ErrorMessage = {
     },
     CONTAINERS: {
       MISSING_PARAMETERS: "Missing container parameters.",
-      LIST_LOOKUP_FAILED:
-        "An error ocurred while trying to fetch the list of containers.",
-      CONTAINER_LOOKUP_FAILED:
-        "An error ocurred while trying to fetch the container information.",
-      CONTAINER_INVALID_ACTION: "Docker container invalid action.",
-      CONTAINER_ACTION_FAILED: "Docker container action failed: ",
+      LIST_LOOKUP_FAILED: "Failed to retrieve list of Docker containers.",
+      CONTAINER_LOOKUP_FAILED: (id: string) =>
+        `Failed to retrieve information of Docker container ${id}.`,
+      CONTAINER_ACTION_FAILED: (id: string, action: string) =>
+        `Failed to ${action} Docker container ${id}.`,
     },
     NETWORKS: {
       MISSING_PARAMETERS: "Missing network parameters.",
-      LIST_LOOKUP_FAILED:
-        "An error ocurred while trying to fetch the list of networks.",
-      NETWORK_LOOKUP_FAILED:
-        "An error ocurred while trying to fetch the network information.",
-      NETWORK_CREATION_FAILED:
-        "An error ocurred while trying to create the network.",
-      NETWORK_REMOVAL_FAILED:
-        "An error ocurred while trying to remove the network.",
-      NETWORK_PRUNING_FAILED:
-        "An error ocurred while trying to remove unused networks.",
+      LIST_LOOKUP_FAILED: "Failed to retrieve list of Docker networks.",
+      NETWORK_LOOKUP_FAILED: (id: string) =>
+        `Failed to retrieve information of Docker network ${id}.`,
+      NETWORK_CREATION_FAILED: "Failed to create a new Docker Network.",
+      NETWORK_REMOVAL_FAILED: (id: string) =>
+        `Failed to remove Docker network ${id}`,
+      NETWORK_PRUNING_FAILED: "Failed to remove unused Docker networks.",
     },
   },
 };
