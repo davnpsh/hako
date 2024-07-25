@@ -1,43 +1,29 @@
-import http from "http";
+import axios from "axios";
 import { Container, Socket } from "../../interfaces/docker";
 import { Actions } from "../../../definitions/actions";
 
-export default function (
+export default async function (
   socket: Socket,
   id: string,
   action: string,
 ): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const timeout_seconds = 5;
-    const options = {
-      ...socket.location(),
-      path: `/containers/${id}/${action}`,
-      method: "POST",
-    };
+  const timeout = 5 /* seconds */ * 1000;
 
-    const req = http.request(options, (res) => {
-      // Response codes based on:
-      // https://docs.docker.com/engine/api/v1.46/#tag/Container/operation/ContainerStart
-      switch (res.statusCode) {
-        case 204:
-        case 304:
-          resolve();
-          break;
-        default:
-          reject();
-      }
-    });
+  const config = {
+    method: "POST",
+    url: `/containers/${id}/${action}`,
+    timeout,
+    headers: {
+      "Content-Type": "application/json",
+    },
+    ...socket.location(),
+  };
 
-    req.on("error", (error) => {
-      reject(error);
-    });
-
-    // Docker direct commands/API can be really slow to report a timeout.
-    req.setTimeout(timeout_seconds * 1000, () => {
-      let error = new Error("Timeout");
-      reject(error);
-    });
-
-    req.end();
+  await axios(config).catch((error) => {
+    // Make exception on 304, since there is no modification
+    // https://docs.docker.com/engine/api/v1.46/#tag/Container/operation/ContainerStart
+    if (error.response.status !== 304) throw new Error();
   });
+
+  return;
 }

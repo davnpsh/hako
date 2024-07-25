@@ -59,7 +59,7 @@ app.get("/docker/socket", async (req: Request, res: Response) => {
 /**
  * = DOCKER CONTAINERS
  */
-app.get("/docker/containers/list", async (req: Request, res: Response) => {
+app.get("/docker/containers", async (req: Request, res: Response) => {
   try {
     const containers: Container[] = await docker.containers.list();
 
@@ -105,7 +105,7 @@ const docker_container_control =
 
       await docker.containers.control(id, action);
       logger.info(InfoMessage.DOCKER.CONTAINERS.CONTAINER_ACTION + action);
-      res.status(200).send();
+      res.status(204).send();
     } catch (error) {
       logger.error(
         ErrorMessage.DOCKER.CONTAINERS.CONTAINER_ACTION_FAILED + action,
@@ -132,7 +132,7 @@ app.post(
 /**
  * = DOCKER NETWORKS
  */
-app.get("/docker/networks/list", async (req: Request, res: Response) => {
+app.get("/docker/networks", async (req: Request, res: Response) => {
   try {
     const networks: Network[] = await docker.networks.list();
 
@@ -176,7 +176,7 @@ app.post("/docker/networks/create", async (req: Request, res: Response) => {
 
     const id = await docker.networks.create(name, driver);
     logger.info(InfoMessage.DOCKER.NETWORKS.NETWORK_CREATION);
-    res.status(200).json({ id: id });
+    res.status(201).json({ id: id });
   } catch (error) {
     logger.error(ErrorMessage.DOCKER.NETWORKS.NETWORK_CREATION_FAILED);
     res.status(500).send();

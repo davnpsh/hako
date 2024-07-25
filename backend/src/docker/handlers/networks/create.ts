@@ -1,50 +1,29 @@
-import http from "http";
+import axios from "axios";
 import { Socket } from "../../interfaces/docker";
 
-export default function (
+export default async function (
   socket: Socket,
   name: string,
   driver: string,
 ): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const timeout_seconds = 5;
-    const options = {
-      ...socket.location(),
-      path: "/networks/create",
-      method: "POST",
-    };
-    const payload = JSON.stringify({ Name: name, Driver: driver });
+  const timeout = 5 /* seconds */ * 1000;
 
-    const req = http.request(options, (res) => {
-      let data = "";
+  const payload = JSON.stringify({ Name: name, Driver: driver });
 
-      res.on("data", (chunk) => {
-        data += chunk;
-      });
+  const config = {
+    method: "POST",
+    url: "/networks/create",
+    timeout,
+    data: payload,
+    headers: {
+      "Content-Type": "application/json",
+    },
+    ...socket.location(),
+  };
 
-      res.on("end", () => {
-        try {
-          const response = JSON.parse(data);
-          const id: string = response.Id;
-          resolve(id);
-        } catch (error) {
-          reject(error);
-        }
-      });
-    });
+  const response = await axios(config);
 
-    req.on("error", (error) => {
-      reject(error);
-    });
+  const id: string = response.data.Id;
 
-    req.write(payload);
-
-    // Docker direct commands/API can be really slow to report a timeout.
-    req.setTimeout(timeout_seconds * 1000, () => {
-      let error = new Error("Timeout");
-      reject(error);
-    });
-
-    req.end();
-  });
+  return id;
 }

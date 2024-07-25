@@ -1,51 +1,28 @@
-import http from "http";
+import axios from "axios";
 import { Network, Socket } from "../../interfaces/docker";
 
-export default function (socket: Socket): Promise<Network[]> {
-  return new Promise((resolve, reject) => {
-    const timeout_seconds = 5;
-    const options = {
-      ...socket.location(),
-      path: "/networks",
-      method: "GET",
-    };
+export default async function (socket: Socket): Promise<Network[]> {
+  const timeout = 5 /* seconds */ * 1000;
 
-    const req = http.request(options, (res) => {
-      let data = "";
+  const config = {
+    method: "GET",
+    url: "/networks",
+    timeout,
+    headers: {
+      "Content-Type": "application/json",
+    },
+    ...socket.location(),
+  };
 
-      res.on("data", (chunk) => {
-        data += chunk;
-      });
+  const response = await axios(config);
 
-      res.on("end", () => {
-        try {
-          const response = JSON.parse(data);
+  // Parse response to get only useful data
+  const networks: Network[] = response.data.map((network: any) => ({
+    id: network.Id,
+    name: network.Name,
+    scope: network.Scope,
+    driver: network.Driver,
+  }));
 
-          // We just need essential data
-          const networks: Network[] = response.map((network: any) => ({
-            id: network.Id,
-            name: network.Name,
-            scope: network.Scope,
-            driver: network.Driver,
-          }));
-
-          resolve(networks);
-        } catch (error) {
-          reject(error);
-        }
-      });
-    });
-
-    req.on("error", (error) => {
-      reject(error);
-    });
-
-    // Docker direct commands/API can be really slow to report a timeout.
-    req.setTimeout(timeout_seconds * 1000, () => {
-      let error = new Error("Timeout");
-      reject(error);
-    });
-
-    req.end();
-  });
+  return networks;
 }

@@ -1,4 +1,4 @@
-import http from "http";
+import axios from "axios";
 import { Socket } from "../interfaces/docker";
 
 const socket: Socket = {
@@ -10,8 +10,7 @@ const socket: Socket = {
     const location = docker_host
       ? // If the socket is an external one, use the provided address:
         {
-          hostname: docker_host.hostname,
-          port: docker_host.port,
+          baseURL: `http://${docker_host.hostname}:${docker_host.port}`,
         }
       : // If not, use the mounted Docker socket:
         {
@@ -20,28 +19,18 @@ const socket: Socket = {
 
     return location;
   },
-  isRunning: function (): Promise<boolean> {
-    return new Promise((resolve) => {
-      const timeout_seconds = 5;
-      const options = { ...this.location(), path: "/_ping", method: "GET" };
+  isRunning: async function (): Promise<boolean> {
+    const timeout = 5 /* seconds */ * 1000;
 
-      const req = http.request(options, (res) => {
-        // Docker socket was found and running
-        resolve(res.statusCode === 200);
-      });
+    const config = {
+      method: "GET",
+      url: "/_ping",
+      timeout,
+      ...this.location(),
+    };
 
-      req.on("error", (error) => {
-        // Docker socket not running or not found
-        resolve(false);
-      });
-
-      // Docker direct commands/API can be really slow to report a timeout.
-      req.setTimeout(timeout_seconds * 1000, () => {
-        resolve(false);
-      });
-
-      req.end();
-    });
+    // Return true of false depending on responde code status
+    return axios(config).then((response) => response.status === 200);
   },
 };
 

@@ -1,51 +1,27 @@
-import http from "http";
+import axios from "axios";
 import { Container, Socket } from "../../interfaces/docker";
 
-export default function (socket: Socket, id: string): Promise<Container> {
-  return new Promise((resolve, reject) => {
-    const timeout_seconds = 5;
-    const options = {
-      ...socket.location(),
-      path: `/containers/${id}/json`,
-      method: "GET",
-    };
+export default async function (socket: Socket, id: string): Promise<Container> {
+  const timeout = 5 /* seconds */ * 1000;
 
-    const req = http.request(options, (res) => {
-      let data = "";
+  const config = {
+    method: "GET",
+    url: `/containers/${id}/json`,
+    timeout,
+    headers: {
+      "Content-Type": "application/json",
+    },
+    ...socket.location(),
+  };
 
-      res.on("data", (chunk) => {
-        data += chunk;
-      });
+  const response = await axios(config);
 
-      res.on("end", () => {
-        try {
-          const response = JSON.parse(data);
+  const container: Container = {
+    id: response.data.Id,
+    name: response.data.Name.replace(/^\//, ""),
+    image: response.data.Config.Image,
+    compose_project: response.data.Config.Labels["com.docker.compose.project"],
+  };
 
-          const container: Container = {
-            id: response.Id,
-            name: response.Name.replace(/^\//, ""),
-            image: response.Config.Image,
-            compose_project:
-              response.Config.Labels["com.docker.compose.project"],
-          };
-
-          resolve(container);
-        } catch (error) {
-          reject(error);
-        }
-      });
-    });
-
-    req.on("error", (error) => {
-      reject(error);
-    });
-
-    // Docker direct commands/API can be really slow to report a timeout.
-    req.setTimeout(timeout_seconds * 1000, () => {
-      let error = new Error("Timeout");
-      reject(error);
-    });
-
-    req.end();
-  });
+  return container;
 }

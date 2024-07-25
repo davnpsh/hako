@@ -1,29 +1,20 @@
-import http from "http";
+import axios from "axios";
 import { Socket } from "../../interfaces/docker";
 
-export default function (socket: Socket, id: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const timeout_seconds = 5;
-    const options = {
-      ...socket.location(),
-      path: `/networks/${id}`,
-      method: "DELETE",
-    };
+export default async function (socket: Socket, id: string): Promise<void> {
+  const timeout = 5 /* seconds */ * 1000;
 
-    const req = http.request(options, (res) => {
-      res.statusCode === 204 ? resolve() : reject();
-    });
+  const config = {
+    method: "DELETE",
+    url: `/networks/${id}`,
+    timeout,
+    headers: {
+      "Content-Type": "application/json",
+    },
+    ...socket.location(),
+  };
 
-    req.on("error", (error) => {
-      reject(error);
-    });
+  await axios(config);
 
-    // Docker direct commands/API can be really slow to report a timeout.
-    req.setTimeout(timeout_seconds * 1000, () => {
-      let error = new Error("Timeout");
-      reject(error);
-    });
-
-    req.end();
-  });
+  return;
 }
