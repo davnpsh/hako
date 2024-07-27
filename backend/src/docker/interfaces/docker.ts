@@ -199,7 +199,7 @@ export interface Volumes {
     driverOpts?: Record<string, string>,
     labels?: Record<string, string>,
     ClusterVolumeSpec?: Record<string, string>,
-  ) => Promise<Volume>;
+  ) => Promise<String>;
 
   /**
    * Retrieve detailed information about a single Docker volume.
@@ -239,4 +239,9 @@ export interface Docker {
    * Exposes methods to interact with images.
    */
   images: Images;
+
+  /**
+   * Exposes methods to interact with volumes.
+   */
+  volumes: Volumes;
 }

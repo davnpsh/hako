@@ -8,7 +8,7 @@ import morgan from "morgan";
 import express, { Request, Response } from "express";
 // Docker
 import Docker from "./docker";
-import { Container, Image, Network } from "./docker/interfaces/docker";
+import { Container, Image, Network, Volume } from "./docker/interfaces/docker";
 
 const app = express();
 const port = 3000;
@@ -300,6 +300,83 @@ app.delete("/docker/images/:id", async (req: Request, res: Response) => {
     await docker.images.remove(id);
 
     res.status(204).send();
+  } catch (error) {
+    res.status(500).send();
+  }
+});
+
+/**
+ * = DOCKER VOLUMES
+ */
+app.get("/docker/volumes", async (req: Request, res: Response) => {
+  try {
+    const volumes: Volume[] = await docker.volumes.list();
+    res.status(200).json(volumes);
+  } catch (error) {
+    res.status(500).send();
+  }
+});
+
+app.post("/docker/volumes/create", async (req: Request, res: Response) => {
+  const { name, driver, driverOpts, labels, ClusterVolumeSpec } = req.body;
+
+  if (!name || !driver) {
+    res.status(400).send();
+    return;
+  }
+
+  try {
+    const id = await docker.volumes.create(
+      name,
+      driver,
+      driverOpts,
+      labels,
+      ClusterVolumeSpec,
+    );
+
+    res.status(201).json({ id: id });
+  } catch (error) {
+    logger.error(error);
+    res.status(500).send();
+  }
+});
+
+app.get("/docker/volumes/:id", async (req: Request, res: Response) => {
+  const id: string = req.params.id as string;
+
+  if (!id) {
+    res.status(400).send();
+    return;
+  }
+
+  try {
+    const volume: Volume = await docker.volumes.inspect(id);
+    res.status(200).json(volume);
+  } catch (error) {
+    res.status(500).send();
+  }
+});
+
+app.delete("/docker/volumes/:id", async (req: Request, res: Response) => {
+  const id: string = req.params.id as string;
+
+  if (!id) {
+    res.status(400).send();
+    return;
+  }
+
+  try {
+    await docker.volumes.remove(id);
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).send();
+  }
+});
+
+app.post("/docker/volumes/prune", async (req: Request, res: Response) => {
+  try {
+    await docker.volumes.prune();
+    res.status(200).send();
   } catch (error) {
     res.status(500).send();
   }

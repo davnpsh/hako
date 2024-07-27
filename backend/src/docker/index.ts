@@ -4,6 +4,7 @@ import socket from "./handlers/socket";
 import containers from "./handlers/containers";
 import networks from "./handlers/networks";
 import images from "./handlers/images";
+import volumes from "./handlers/volumes";
 
 /**
  * Returns a Docker object with methods to interact with Docker.
@@ -15,6 +16,7 @@ export default function (): Docker {
     containers: containers(socket),
     networks: networks(socket),
     images: images(socket),
+    volumes: volumes(socket),
   };
 
   return docker;
