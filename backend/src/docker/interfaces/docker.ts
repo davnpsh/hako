@@ -47,6 +47,38 @@ export interface Image {
   tags: string[];
 }
 
+export interface Volume {
+  /**
+   * The name of the volume.
+   */
+  name: string;
+
+  /**
+   * The driver used by the volume (e.g., 'local', 'nfs', etc.).
+   */
+  driver: string;
+
+  /**
+   * The mount point of the volume on the host system.
+   */
+  mount_point: string;
+
+  /**
+   * The scope of the volume ('local' or 'global').
+   */
+  scope: string;
+
+  /**
+   * User-defined metadata in the form of key-value pairs.
+   */
+  labels: Record<string, string>;
+
+  /**
+   * Additional information about the volume provided by the volume driver.
+   */
+  info: Record<string, string>;
+}
+
 export interface Socket {
   /**
    * Returns the calculated location of the Docker socket.
@@ -141,6 +173,51 @@ export interface Images {
   remove: (id: string) => Promise<void>;
   /**
    * Delete unused Docker images.
+   */
+  prune: () => Promise<void>;
+}
+
+export interface Volumes {
+  /**
+   * Retrieve information about all Docker volumes.
+   * @returns {Promise<Volume[]>} List of current Docker volumes.
+   */
+  list: () => Promise<Volume[]>;
+
+  /**
+   * Create a new Docker volume.
+   * @param {string} name - Name of the volume to create.
+   * @param {string} driver - Volume driver to use.
+   * @param {Record<string, string>} [driverOpts] - Driver-specific options.
+   * @param {Record<string, string>} [labels] - Labels to set on the volume.
+   * @param {Record<string, string>} [ClusterVolumeSpec] - Cluster-specific volume options.
+   * @returns {Promise<Volume>} Created Docker volume information.
+   */
+  create: (
+    name: string,
+    driver: string,
+    driverOpts?: Record<string, string>,
+    labels?: Record<string, string>,
+    ClusterVolumeSpec?: Record<string, string>,
+  ) => Promise<Volume>;
+
+  /**
+   * Retrieve detailed information about a single Docker volume.
+   * @param {string} name - Name of the volume to inspect.
+   * @returns {Promise<Volume>} Detailed Docker volume information.
+   */
+  inspect: (name: string) => Promise<Volume>;
+
+  /**
+   * Remove a Docker volume.
+   * @param {string} id - ID or name of the volume to remove.
+   * @returns {Promise<void>}
+   */
+  remove: (id: string) => Promise<void>;
+
+  /**
+   * Remove all unused Docker volumes.
+   * @returns {Promise<void>}
    */
   prune: () => Promise<void>;
 }
