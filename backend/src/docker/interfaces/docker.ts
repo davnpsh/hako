@@ -36,6 +36,17 @@ export interface Network {
   driver: string;
 }
 
+export interface Image {
+  /**
+   * Image ID.
+   */
+  id: string;
+  /**
+   * Image tags.
+   */
+  tags: string[];
+}
+
 export interface Socket {
   /**
    * Returns the calculated location of the Docker socket.
@@ -71,8 +82,8 @@ export interface Containers {
 
 export interface Networks {
   /**
-   * Retrieve information about all Docket networks.
-   * @returns {Promise<Container[]>} List of current Docker networks.
+   * Retrieve information about all Docker networks.
+   * @returns {Promise<Network[]>} List of current Docker networks.
    */
   list: () => Promise<Network[]>;
   /**
@@ -99,6 +110,41 @@ export interface Networks {
   prune: () => Promise<void>;
 }
 
+export interface Images {
+  /**
+   * Retrieve information about all Docker images.
+   * @returns {Promise<Image[]>} List of current Docker images.
+   */
+  list: () => Promise<Image[]>;
+  /**
+   * Retrieve information about a single image.
+   * @param {string} id - Image ID.
+   * @returns {Promise<Network>} Docker image information.
+   */
+  inspect: (id: string) => Promise<Image>;
+  /**
+   * Pull a Docker image from a registry.
+   * @param {string} name - Image name.
+   * @param {string} [tag='latest'] - Image tag.
+   */
+  pull: (name: string, tag: string) => Promise<void>;
+  /**
+   * Search for images in the official Docker registry
+   * @param {string} term - Search term.
+   * @returns {Promise<Network>} Results from Docker registry.
+   */
+  search: (term: string) => Promise<object[]>;
+  /**
+   * Delete a Docker image.
+   * @param {string} id - Image ID.
+   */
+  remove: (id: string) => Promise<void>;
+  /**
+   * Delete unused Docker images.
+   */
+  prune: () => Promise<void>;
+}
+
 export interface Docker {
   /**
    * Contains Docker socket information.
@@ -112,4 +158,8 @@ export interface Docker {
    * Exposes methods to interact with networks.
    */
   networks: Networks;
+  /**
+   * Exposes methods to interact with images.
+   */
+  images: Images;
 }

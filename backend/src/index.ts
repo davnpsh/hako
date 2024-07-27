@@ -8,18 +8,13 @@ import morgan from "morgan";
 import express, { Request, Response } from "express";
 // Docker
 import Docker from "./docker";
-import { Container, Network } from "./docker/interfaces/docker";
+import { Container, Image, Network } from "./docker/interfaces/docker";
 
 const app = express();
 const port = 3000;
 
 // APIs
 const docker = Docker();
-
-// Config Express to parse URL query strings. Do not use default req.query parser.
-app.set("query parser", (queryString: string) => {
-  return new URLSearchParams(queryString);
-});
 
 const morganMiddleware = morgan(
   ":method :url :status :res[content-length] - :response-time ms",
@@ -71,29 +66,6 @@ app.get("/docker/containers", async (req: Request, res: Response) => {
   }
 });
 
-app.get("/docker/containers/:id", async (req: Request, res: Response) => {
-  const id: string = req.params.id as string;
-
-  if (!id) {
-    logger.error(ErrorMessage.DOCKER.CONTAINERS.MISSING_PARAMETERS);
-    res.status(400).send();
-    return;
-  }
-
-  try {
-    const container: Container = await docker.containers.inspect(id);
-
-    logger.info(InfoMessage.DOCKER.CONTAINERS.CONTAINER_LOOKUP(id));
-    res.status(200).json(container);
-  } catch (error) {
-    logger.error(
-      ErrorMessage.DOCKER.CONTAINERS.CONTAINER_LOOKUP_FAILED(id),
-      error,
-    );
-    res.status(500).send();
-  }
-});
-
 // Docker containers controls
 const docker_container_control =
   (action: string) => async (req: Request, res: Response) => {
@@ -133,6 +105,29 @@ app.post(
   docker_container_control(Actions.DOCKER.CONTAINERS.RESTART),
 );
 
+app.get("/docker/containers/:id", async (req: Request, res: Response) => {
+  const id: string = req.params.id as string;
+
+  if (!id) {
+    logger.error(ErrorMessage.DOCKER.CONTAINERS.MISSING_PARAMETERS);
+    res.status(400).send();
+    return;
+  }
+
+  try {
+    const container: Container = await docker.containers.inspect(id);
+
+    logger.info(InfoMessage.DOCKER.CONTAINERS.CONTAINER_LOOKUP(id));
+    res.status(200).json(container);
+  } catch (error) {
+    logger.error(
+      ErrorMessage.DOCKER.CONTAINERS.CONTAINER_LOOKUP_FAILED(id),
+      error,
+    );
+    res.status(500).send();
+  }
+});
+
 /**
  * = DOCKER NETWORKS
  */
@@ -144,26 +139,6 @@ app.get("/docker/networks", async (req: Request, res: Response) => {
     res.status(200).json(networks);
   } catch (error) {
     logger.error(ErrorMessage.DOCKER.NETWORKS.LIST_LOOKUP_FAILED, error);
-    res.status(500).send();
-  }
-});
-
-app.get("/docker/networks/:id", async (req: Request, res: Response) => {
-  const id: string = req.params.id as string;
-
-  if (!id) {
-    logger.error(ErrorMessage.DOCKER.NETWORKS.MISSING_PARAMETERS);
-    res.status(400).send();
-    return;
-  }
-
-  try {
-    const network: Network = await docker.networks.inspect(id);
-
-    logger.info(InfoMessage.DOCKER.NETWORKS.NETWORK_LOOKUP(id));
-    res.status(200).json(network);
-  } catch (error) {
-    logger.error(ErrorMessage.DOCKER.NETWORKS.NETWORK_LOOKUP_FAILED(id), error);
     res.status(500).send();
   }
 });
@@ -188,6 +163,38 @@ app.post("/docker/networks/create", async (req: Request, res: Response) => {
   }
 });
 
+app.post("/docker/networks/prune", async (req: Request, res: Response) => {
+  try {
+    await docker.networks.prune();
+
+    logger.info(InfoMessage.DOCKER.NETWORKS.NETWORK_PRUNING);
+    res.status(200).send();
+  } catch (error) {
+    logger.error(ErrorMessage.DOCKER.NETWORKS.NETWORK_PRUNING_FAILED);
+    res.status(500).send();
+  }
+});
+
+app.get("/docker/networks/:id", async (req: Request, res: Response) => {
+  const id: string = req.params.id as string;
+
+  if (!id) {
+    logger.error(ErrorMessage.DOCKER.NETWORKS.MISSING_PARAMETERS);
+    res.status(400).send();
+    return;
+  }
+
+  try {
+    const network: Network = await docker.networks.inspect(id);
+
+    logger.info(InfoMessage.DOCKER.NETWORKS.NETWORK_LOOKUP(id));
+    res.status(200).json(network);
+  } catch (error) {
+    logger.error(ErrorMessage.DOCKER.NETWORKS.NETWORK_LOOKUP_FAILED(id), error);
+    res.status(500).send();
+  }
+});
+
 app.delete("/docker/networks/:id", async (req: Request, res: Response) => {
   const id: string = req.params.id as string;
 
@@ -208,14 +215,92 @@ app.delete("/docker/networks/:id", async (req: Request, res: Response) => {
   }
 });
 
-app.post("/docker/networks/prune", async (req: Request, res: Response) => {
+/**
+ * = DOCKER IMAGES
+ */
+app.get("/docker/images", async (req: Request, res: Response) => {
   try {
-    await docker.networks.prune();
+    const images: Image[] = await docker.images.list();
+    res.status(200).json(images);
+  } catch (error) {
+    res.status(500).send();
+  }
+});
 
-    logger.info(InfoMessage.DOCKER.NETWORKS.NETWORK_PRUNING);
+app.get("/docker/images/search", async (req: Request, res: Response) => {
+  const { term } = req.query;
+
+  if (!term) {
+    res.status(400).send();
+    return;
+  }
+
+  try {
+    const results: object[] = await docker.images.search(term as string);
+
+    res.status(200).json(results);
+  } catch (error) {
+    res.status(500).send();
+  }
+});
+
+app.post("/docker/images/pull", async (req: Request, res: Response) => {
+  const { name, tag } = req.query;
+
+  if (!name) {
+    res.status(400).send();
+    return;
+  }
+
+  try {
+    await docker.images.pull(name as string, tag as string);
+
+    res.status(201).send();
+  } catch (error) {
+    res.status(500).send();
+  }
+});
+
+app.post("/docker/images/prune", async (req: Request, res: Response) => {
+  try {
+    await docker.images.prune();
+
     res.status(200).send();
   } catch (error) {
-    logger.error(ErrorMessage.DOCKER.NETWORKS.NETWORK_PRUNING_FAILED);
+    res.status(500).send();
+  }
+});
+
+app.get("/docker/images/:id", async (req: Request, res: Response) => {
+  const id: string = req.params.id as string;
+
+  if (!id) {
+    res.status(400).send();
+    return;
+  }
+
+  try {
+    const image: Image = await docker.images.inspect(id);
+
+    res.status(200).json(image);
+  } catch (error) {
+    res.status(500).send();
+  }
+});
+
+app.delete("/docker/images/:id", async (req: Request, res: Response) => {
+  const id: string = req.params.id as string;
+
+  if (!id) {
+    res.status(400).send();
+    return;
+  }
+
+  try {
+    await docker.images.remove(id);
+
+    res.status(204).send();
+  } catch (error) {
     res.status(500).send();
   }
 });
