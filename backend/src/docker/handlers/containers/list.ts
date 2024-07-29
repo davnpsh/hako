@@ -21,6 +21,8 @@ export default async function (socket: Socket): Promise<Container[]> {
     id: container.Id,
     name: container.Names[0].replace(/^\//, ""),
     image: container.Image,
+    image_id: container.ImageID.replace(/^sha256:/, ""), // Get clean ID
+    created: container.Created, // This is on UNIX timestamp by default
     compose_project: container.Labels["com.docker.compose.project"],
   }));
 

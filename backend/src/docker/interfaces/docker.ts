@@ -12,6 +12,14 @@ export interface Container {
    */
   image: string;
   /**
+   * Container image ID.
+   */
+  image_id: string;
+  /**
+   * Container creation date.
+   */
+  created: string;
+  /**
    * Container compose project group.
    */
   compose_project?: string;
