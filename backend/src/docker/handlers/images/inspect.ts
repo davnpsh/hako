@@ -16,9 +16,15 @@ export default async function (socket: Socket, id: string): Promise<Image> {
 
   const response = await axios(config);
 
+  // Date comes in another format when inspecting individual images.
+  // For consistency, convert created date to UNIX timestamp:
+  const created_date = new Date(response.data.Created);
+  const unix_timestamp = Math.floor(created_date.getTime() / 1000).toString();
+
   const image: Image = {
     id: response.data.Id,
     tags: response.data.RepoTags,
+    created: unix_timestamp,
   };
 
   return image;

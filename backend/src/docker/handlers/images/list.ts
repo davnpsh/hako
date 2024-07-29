@@ -20,6 +20,7 @@ export default async function (socket: Socket): Promise<Image[]> {
   const images: Image[] = response.data.map((image: any) => ({
     id: image.Id,
     tags: image.RepoTags,
+    created: image.Created, // This is on UNIX timestamp by default
   }));
 
   return images;
