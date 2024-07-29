@@ -49,6 +49,10 @@ export interface Image {
    * Image creation date
    */
   created: string;
+  /**
+   * Image tags.
+   */
+  size: string;
 }
 
 export interface Volume {

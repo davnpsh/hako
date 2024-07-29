@@ -21,6 +21,7 @@ export default async function (socket: Socket): Promise<Image[]> {
     id: image.Id,
     tags: image.RepoTags,
     created: image.Created, // This is on UNIX timestamp by default
+    size: image.Size,
   }));
 
   return images;

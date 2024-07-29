@@ -25,6 +25,7 @@ export default async function (socket: Socket, id: string): Promise<Image> {
     id: response.data.Id,
     tags: response.data.RepoTags,
     created: unix_timestamp,
+    size: response.data.Size,
   };
 
   return image;
