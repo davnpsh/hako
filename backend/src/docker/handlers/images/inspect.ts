@@ -22,7 +22,7 @@ export default async function (socket: Socket, id: string): Promise<Image> {
   const unix_timestamp = Math.floor(created_date.getTime() / 1000).toString();
 
   const image: Image = {
-    id: response.data.Id,
+    id: response.data.Id.replace(/^sha256:/, ""), // Get clean ID
     tags: response.data.RepoTags,
     created: unix_timestamp,
     size: response.data.Size,

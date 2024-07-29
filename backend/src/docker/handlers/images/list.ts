@@ -18,7 +18,7 @@ export default async function (socket: Socket): Promise<Image[]> {
 
   // Parse response to get only useful data
   const images: Image[] = response.data.map((image: any) => ({
-    id: image.Id,
+    id: image.Id.replace(/^sha256:/, ""), // Get clean ID
     tags: image.RepoTags,
     created: image.Created, // This is on UNIX timestamp by default
     size: image.Size,
