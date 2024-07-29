@@ -6,18 +6,12 @@ export default async function (
   socket: Socket,
   name: string,
   driver: string,
-  driverOpts?: Record<string, string>,
-  labels?: Record<string, string>,
-  ClusterVolumeSpec?: Record<string, string>,
-): Promise<string> {
+): Promise<void> {
   const timeout = 5 /* seconds */ * 1000;
 
   const payload = JSON.stringify({
     Name: name,
     Driver: driver,
-    DriverOpts: driverOpts,
-    Labels: labels,
-    ClusterVolumeSpec: ClusterVolumeSpec,
   });
 
   const config = {
@@ -31,10 +25,7 @@ export default async function (
     ...socket.location(),
   };
 
-  const response = await axios(config);
+  await axios(config);
 
-  // Parse response to get only useful data
-  const id: string = response.data.Name;
-
-  return id;
+  return;
 }

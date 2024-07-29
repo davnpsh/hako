@@ -23,8 +23,6 @@ export default async function (socket: Socket): Promise<Volume[]> {
     driver: volume.Driver,
     mount_point: volume.Mountpoint,
     scope: volume.Scope,
-    labels: volume.Labels,
-    info: volume.Options,
   }));
 
   return volumes;

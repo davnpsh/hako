@@ -9,13 +9,7 @@ import prune from "./prune";
 export default function (socket: Socket): Volumes {
   const volumes: Volumes = {
     list: () => list(socket),
-    create: (
-      name: string,
-      driver: string,
-      driverOpts?: Record<string, string>,
-      labels?: Record<string, string>,
-      ClusterVolumeSpec?: Record<string, string>,
-    ) => create(socket, name, driver, driverOpts, labels, ClusterVolumeSpec),
+    create: (name: string, driver: string) => create(socket, name, driver),
     inspect: (name: string) => inspect(socket, name),
     remove: (name: string) => remove(socket, name),
     prune: () => prune(socket),
